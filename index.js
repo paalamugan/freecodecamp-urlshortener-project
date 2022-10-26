@@ -29,6 +29,7 @@ const getDns = async (url) => {
     })
   })
 }
+
 const data = [];
 // Your first API endpoint
 app.post('/api/shorturl', async function(req, res) {
@@ -37,6 +38,12 @@ app.post('/api/shorturl', async function(req, res) {
     if (!url) {
       throw new Error('Invalid URL');
     }
+    const found = data.find((row) => row.original_url === url);
+
+    if (found) {
+      return res.json(found);
+    }
+    
     const address = await getDns(url);
     console.log("🚀 ~ file: index.js ~ line 41 ~ app.post ~ address", address)
     let result = {
