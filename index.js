@@ -17,14 +17,14 @@ app.get('/', function(req, res) {
   res.sendFile(process.cwd() + '/views/index.html');
 });
 
-const getDns = async (url) => {
+const getDns = (url) => {
   return new Promise((resolve, reject) => {
-    const newUrl = new URL(url);
-    dns.lookup(newUrl.hostname, (err, address, family) => {
+    const urlObj = new URL(url);
+    dns.lookup(urlObj.host, (err, address) => {
       if (err) {
-        reject(new Error('Invalid URL'));
+        resolve(null);
       } else {
-        resolve({address, family})
+        resolve(address)
       }
     })
   })
@@ -43,9 +43,11 @@ app.post('/api/shorturl', async function(req, res) {
     if (found) {
       return res.json(found);
     }
-    
+
     const address = await getDns(url);
-    console.log("🚀 ~ file: index.js ~ line 41 ~ app.post ~ address", address)
+    if (!address) {
+      return res.json({ error: 'Invalid URL' });
+    }
     let result = {
       original_url: url, 
       short_url: data.length + 1
@@ -53,7 +55,7 @@ app.post('/api/shorturl', async function(req, res) {
     data.push(result);
     res.json(result);
   } catch (err) {
-    res.status(400).json({ error: err?.message });
+    res.status(500).json({ error: err?.message });
   }
 });
 
